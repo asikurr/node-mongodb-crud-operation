@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 
 const MongoClient = require('mongodb').MongoClient;
 const ObjectId = require('mongodb').ObjectId;
-const uri = "mongodb+srv://asikur1:UYjouRH7bPpJr0c9@cluster0.xjikz.mongodb.net/crudDB?retryWrites=true&w=majority";
+const uri = "mongodb+srv://<user:pass>@cluster0.xjikz.mongodb.net/crudDB?retryWrites=true&w=majority";
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.get("/", (req, res) => {
@@ -26,7 +26,7 @@ client.connect(err => {
     userCollection.insertOne(users)
     .then(result => {
         console.log('One user Added successfully.')
-        res.send('Successfully added.')
+        res.redirect('/')
     })
     // console.log(req.body)
 
@@ -41,6 +41,32 @@ client.connect(err => {
     
   })
 
+    //   load Single user
+    app.get('/singleuser/:id', (req, res) => {
+      userCollection.find({
+          _id: ObjectId(req.params.id)
+      })
+      .toArray((err, documents) => {
+        res.send(documents[0])
+      })
+      
+    })
+
+  //   update user
+  app.patch('/update/:id', (req, res) => {
+    // console.log(req.body)
+    userCollection.updateOne({ _id: ObjectId(req.params.id)}, {
+      $set: {
+        name: req.body.name,
+        salary: req.body.salary,
+        age: req.body.age
+      }
+    })
+    .then(result => {
+      res.send(result.modifiedCount > 0)
+    })
+  })
+
   //   delete user
   app.delete('/delete/:id', (req, res) => {
     //   console.log(req.params.id)
@@ -48,7 +74,7 @@ client.connect(err => {
         _id: ObjectId(req.params.id)
     })
     .then( result => {
-        console.log( result)
+        res.send(result.deletedCount > 0)
     })
     
   })
